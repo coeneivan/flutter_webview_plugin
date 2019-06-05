@@ -70,9 +70,6 @@ class _MyHomePageState extends State<MyHomePage> {
     flutterWebViewPlugins[0] = new FlutterWebviewPlugin();
     flutterWebViewPlugins[1] = new FlutterWebviewPlugin();
 
-    flutterWebViewPlugins[0].close();
-    flutterWebViewPlugins[1].close();
-
     _urlCtrl.addListener(() {
       selectedUrl = _urlCtrl.text;
     });

@@ -85,12 +85,20 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
             case "cleanCookies":
                 cleanCookies(call, result, instance);
                 break;
+            case "setCookie":
+                setCookie(call, result, instance, call.argument("cookie"));
+                break;  
+
+                
             default:
                 result.notImplemented();
                 break;
         }
     }
 
+    private void cleanCookies(MethodCall call, final MethodChannel.Result result, int instance, String cookie) {
+        webViewManagers[instance].
+    }
     private void openUrl(MethodCall call, MethodChannel.Result result, int instance) {
         boolean hidden = call.argument("hidden");
         String url = call.argument("url");

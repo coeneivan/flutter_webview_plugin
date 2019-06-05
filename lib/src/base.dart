@@ -186,6 +186,10 @@ class FlutterWebviewPlugin {
 
   /// Reloads the WebView.
   Future<Null> reload() async => await _channel.invokeMethod('reload', {'instance': _webviewInstance});
+
+  //set cookies
+  Future<Null> setCookies(String cookie) async => await _channel.invokeMethod('setCookie', {'instance': _webviewInstance, 'cookie': cookie});
+
   /// Navigates back on the Webview.
   Future<Null> goBack() async => await _channel.invokeMethod('back',  {'instance': _webviewInstance});
 

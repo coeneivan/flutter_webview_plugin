@@ -324,7 +324,9 @@ class WebviewManager {
             CookieManager.getInstance().removeAllCookie();
         }
     }
-
+    public void setCookie(String cookie){
+        CookieManager.getInstance().setCookie(webview.getOriginalUrl(), cookie);
+    }
     private void clearCache() {
         webView.clearCache(true);
         webView.clearFormData();
