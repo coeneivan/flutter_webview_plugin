@@ -86,7 +86,7 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
                 cleanCookies(call, result, instance);
                 break;
             case "setCookie":
-                setCookie(call, result, instance, call.argument("cookie"));
+                setCookie(call, result, instance, (String)call.argument("cookie"));
                 break;  
 
                 
