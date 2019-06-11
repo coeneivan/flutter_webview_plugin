@@ -11,6 +11,7 @@ import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
 import android.os.Build;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import io.flutter.plugin.common.MethodCall;
@@ -85,19 +86,12 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
             case "cleanCookies":
                 cleanCookies(call, result, instance);
                 break;
-            case "setCookie":
-                setCookie(call, result, instance, (String)call.argument("cookie"));
-                break;  
 
                 
             default:
                 result.notImplemented();
                 break;
         }
-    }
-
-    private void setCookie(MethodCall call, final MethodChannel.Result result, int instance, String cookie) {
-        webViewManagers[instance].setCookie(cookie);
     }
 
 
@@ -108,6 +102,7 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
         boolean withJavascript = call.argument("withJavascript");
         boolean clearCache = call.argument("clearCache");
         boolean clearCookies = call.argument("clearCookies");
+        ArrayList<String> cookies = call.argument("cookies");
         boolean withZoom = call.argument("withZoom");
         boolean withLocalStorage = call.argument("withLocalStorage");
         boolean supportMultipleWindows = call.argument("supportMultipleWindows");
@@ -131,6 +126,7 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
                 clearCache,
                 hidden,
                 clearCookies,
+                cookies,
                 userAgent,
                 url,
                 headers,

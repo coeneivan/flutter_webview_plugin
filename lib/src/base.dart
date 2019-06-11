@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -100,6 +101,7 @@ class FlutterWebviewPlugin {
   /// - [withJavascript] enable Javascript or not for the Webview
   /// - [clearCache] clear the cache of the Webview
   /// - [clearCookies] clear all cookies of the Webview
+  /// - [cookies] An initial list of cookies to populate the Webview's cookiejar
   /// - [hidden] not show
   /// - [rect]: show in rect, fullscreen if null
   /// - [enableAppScheme]: false will enable all schemes, true only for httt/https/about
@@ -121,6 +123,7 @@ class FlutterWebviewPlugin {
     bool withJavascript,
     bool clearCache,
     bool clearCookies,
+    List<Cookie> cookies,
     bool hidden,
     bool enableAppScheme,
     Rect rect,
@@ -136,12 +139,14 @@ class FlutterWebviewPlugin {
     String invalidUrlRegex,
     bool geolocationEnabled,
   }) async {
+    final List<String> serializedCookies = cookies.map((cookie) => cookie.toString()).toList();
     final args = <String, dynamic>{
       'url': url,
       'withJavascript': withJavascript ?? true,
       'clearCache': clearCache ?? false,
       'hidden': hidden ?? false,
       'clearCookies': clearCookies ?? false,
+      'cookies': serializedCookies,
       'enableAppScheme': enableAppScheme ?? true,
       'userAgent': userAgent,
       'withZoom': withZoom ?? false,
@@ -186,9 +191,6 @@ class FlutterWebviewPlugin {
 
   /// Reloads the WebView.
   Future<Null> reload() async => await _channel.invokeMethod('reload', {'instance': _webviewInstance});
-
-  //set cookies
-  Future<Null> setCookies(String cookie) async => await _channel.invokeMethod('setCookie', {'instance': _webviewInstance, 'cookie': cookie});
 
   /// Navigates back on the Webview.
   Future<Null> goBack() async => await _channel.invokeMethod('back',  {'instance': _webviewInstance});

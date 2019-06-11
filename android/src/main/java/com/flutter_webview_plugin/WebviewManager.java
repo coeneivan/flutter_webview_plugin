@@ -324,12 +324,7 @@ class WebviewManager {
             CookieManager.getInstance().removeAllCookie();
         }
     }
-    
-    public void setCookie(String cookie){
-        // System.out.println(cookie);
-        // System.out.println(webView.getUrl());
-        CookieManager.getInstance().setCookie(webView.getUrl(), cookie);
-    }
+
 
     private void clearCache() {
         webView.clearCache(true);
@@ -341,6 +336,7 @@ class WebviewManager {
             boolean clearCache,
             boolean hidden,
             boolean clearCookies,
+            ArrayList<String> cookies,
             String userAgent,
             String url,
             Map<String, String> headers,
@@ -397,6 +393,10 @@ class WebviewManager {
             clearCookies();
         }
 
+        if (cookies != null && !cookies.isEmpty()) {
+            setCookies(url, cookies);
+        }
+
         if (userAgent != null) {
             webView.getSettings().setUserAgentString(userAgent);
         }
@@ -409,6 +409,12 @@ class WebviewManager {
             webView.loadUrl(url, headers);
         } else {
             webView.loadUrl(url);
+        }
+    }
+    
+    private void setCookies(String url, ArrayList<String> cookies) {
+        for (String cookie : cookies) {
+            CookieManager.getInstance().setCookie(url, cookie);
         }
     }
 
