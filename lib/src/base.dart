@@ -181,7 +181,7 @@ class FlutterWebviewPlugin {
 
   /// Execute Javascript inside webview
   Future<String> evalJavascript(String code) async {
-    final res = await _channel.invokeMethod('eval', {'code': code});
+    final res = await _channel.invokeMethod('eval', {'code': code, 'instance': _webviewInstance});
     return res;
   }
 
@@ -206,8 +206,8 @@ class FlutterWebviewPlugin {
 
   // Reload webview with a url
   Future<Null> reloadUrl(String url) async {
-    final args = <String, String>{'url': url};
-    await _channel.invokeMethod('reloadUrl', args);
+    
+    await _channel.invokeMethod('reloadUrl', {'url': url, 'instance': _webviewInstance});
   }
 
   // Clean cookies on WebView
