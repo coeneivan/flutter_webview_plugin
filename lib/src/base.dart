@@ -19,11 +19,16 @@ class FlutterWebviewPlugin {
   int _webviewInstance;
   FlutterWebviewPlugin._() {
 
-   
+    print(" $webviewInstance let\'s Count!");
     webviewInstance++;
     _webviewInstance = webviewInstance;
 
     _channel.setMethodCallHandler(_handleMessages);
+  }
+
+
+  static void resetWebviews(){ //todo support growing array or smt
+    webviewInstance = 0;
   }
 
 
