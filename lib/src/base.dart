@@ -248,7 +248,7 @@ class FlutterWebviewPlugin {
   }
 
   /// resize webview
-  Future<Null> resize(Rect rect) async {
+  Future<Null> resize(Rect rect, {int instance}) async {
     final args = {};
     args['rect'] = {
       'left': rect.left,
@@ -256,6 +256,7 @@ class FlutterWebviewPlugin {
       'width': rect.width,
       'height': rect.height,
     };
+    args['instance'] = instance;
     await _channel.invokeMethod('resize', args);
   }
 }
