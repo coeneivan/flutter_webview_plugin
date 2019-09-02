@@ -143,6 +143,8 @@ class FlutterWebviewPlugin {
     bool useWideViewPort,
     String invalidUrlRegex,
     bool geolocationEnabled,
+    List<String> permissions,
+    Function permissionDenied
   }) async {
     final List<String> serializedCookies = cookies.map((cookie) => cookie.toString()).toList();
     final args = <String, dynamic>{
@@ -164,7 +166,9 @@ class FlutterWebviewPlugin {
       'useWideViewPort': useWideViewPort ?? false,
       'invalidUrlRegex': invalidUrlRegex,
       'geolocationEnabled': geolocationEnabled ?? false,
-      'instance': _webviewInstance
+      'instance': _webviewInstance,
+      'permissions': permissions,
+      'permissionDenied': permissionDenied
     };
 
     if (headers != null) {
@@ -211,7 +215,6 @@ class FlutterWebviewPlugin {
 
   // Reload webview with a url
   Future<Null> reloadUrl(String url) async {
-    
     await _channel.invokeMethod('reloadUrl', {'url': url, 'instance': _webviewInstance});
   }
 

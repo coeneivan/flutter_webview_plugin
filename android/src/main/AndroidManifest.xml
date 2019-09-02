@@ -1,6 +1,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
           package="com.flutter_webview_plugin">
+   
+        <uses-permission android:name="android.permission.CAMERA" />
+        <uses-permission android:name="android.permission.CAPTURE_SECURE_VIDEO_OUTPUT" />
+        <uses-permission android:name="android.permission.CAPTURE_VIDEO_OUTPUT" />
+        <uses-permission android:name="android.permission.INTERNET" />
+        <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+        <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+        <uses-permission android:name="android.permission.CAPTURE_AUDIO_OUTPUT" />
+        <uses-feature android:name="android.hardware.camera.autofocus" android:required="true" />
+        <uses-feature android:name="android.hardware.camera.front" android:required="true" />
+        <uses-feature android:name="android.hardware.camera" android:required="true" />
+        <uses-feature android:name="android.hardware.camera.level.full" android:required="true" />
+        <uses-feature android:name="android.hardware.camera.capability.raw" android:required="true" />
+        <uses-feature android:name="android.hardware.camera.any" android:required="true" />
+        <uses-feature android:name="android.hardware.microphone" android:required="true" />
+        <uses-feature android:name="android.hardware.camera2" android:required="true" />
+  
     <application>
         <provider
             android:name="androidx.core.content.FileProvider"

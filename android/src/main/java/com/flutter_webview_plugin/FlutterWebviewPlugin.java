@@ -1,6 +1,6 @@
 package com.flutter_webview_plugin;
 
-
+import android.util.Log;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +11,7 @@ import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
 import android.os.Build;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -18,6 +19,8 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.PluginRegistry;
+import io.flutter.plugin.common.PluginRegistry.Registrar;
+import java.util.function.Function;
 
 /**
  * FlutterWebviewPlugin
@@ -25,20 +28,20 @@ import io.flutter.plugin.common.PluginRegistry;
 public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.ActivityResultListener {
     private Activity activity;
     private WebviewManager[] webViewManagers;
-
+    private Registrar registrar;
     private Context context;
     static MethodChannel channel;
     private static final String CHANNEL_NAME = "flutter_webview_plugin";
 
-    public static void registerWith(PluginRegistry.Registrar registrar) {
-
+    public static void registerWith(Registrar registrar) {
         channel = new MethodChannel(registrar.messenger(), CHANNEL_NAME);
-        final FlutterWebviewPlugin instance = new FlutterWebviewPlugin(registrar.activity(),registrar.activeContext());
+        final FlutterWebviewPlugin instance = new FlutterWebviewPlugin(registrar.activity(),registrar.activeContext(), registrar);
         registrar.addActivityResultListener(instance);
         channel.setMethodCallHandler(instance);
     }
 
-    private FlutterWebviewPlugin(Activity activity, Context context) {
+    private FlutterWebviewPlugin(Activity activity, Context context, Registrar registrar) {
+        this.registrar = registrar;
         this.activity = activity;
         this.context = context;
         this.webViewManagers = new WebviewManager[10];
@@ -49,6 +52,16 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
        
         int instance = call.argument("instance");
 
+        Log.d("webviewplugin", "------------------------------------------------------------");
+        Log.d("webviewplugin", "------------------------------------------------------------");
+        Log.d("webviewplugin", "------------------------------------------------------------");
+        Log.d("webviewplugin", "------------------------------------------------------------");
+        Log.d("webviewplugin", call.argument("permissions").toString());
+        Log.d("webviewplugin", "------------------------------------------------------------");
+        Log.d("webviewplugin", "------------------------------------------------------------");
+        Log.d("webviewplugin", "------------------------------------------------------------");
+        Log.d("webviewplugin", "------------------------------------------------------------");
+        
         switch (call.method) {
             case "launch":
                 openUrl(call, result, instance);
@@ -86,7 +99,6 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
             case "cleanCookies":
                 cleanCookies(call, result, instance);
                 break;
-
                 
             default:
                 result.notImplemented();
@@ -103,6 +115,7 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
         boolean clearCache = call.argument("clearCache");
         boolean clearCookies = call.argument("clearCookies");
         ArrayList<String> cookies = call.argument("cookies");
+        ArrayList<String> permissions = call.argument("permissions");
         boolean withZoom = call.argument("withZoom");
         boolean withLocalStorage = call.argument("withLocalStorage");
         boolean supportMultipleWindows = call.argument("supportMultipleWindows");
@@ -113,9 +126,10 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
         boolean useWideViewPort = call.argument("useWideViewPort");
         String invalidUrlRegex = call.argument("invalidUrlRegex");
         boolean geolocationEnabled = call.argument("geolocationEnabled");
-
+        Function permissionDenied = call.argument("permissionDenied");
+        
         if (webViewManagers[instance] == null || webViewManagers[instance].closed == true) {
-            webViewManagers[instance] = new WebviewManager(activity, context);
+            webViewManagers[instance] = new WebviewManager(activity, context, registrar);
         }
 
         FrameLayout.LayoutParams params = buildLayoutParams(call);
@@ -138,7 +152,9 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
                 allowFileURLs,
                 useWideViewPort,
                 invalidUrlRegex,
-                geolocationEnabled
+                geolocationEnabled,
+                permissions,
+                permissionDenied
         );
         result.success(null);
     }
@@ -248,7 +264,6 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
         }
         result.success(null);
     }
-
 
     private void cleanCookies(MethodCall call, final MethodChannel.Result result, int instance) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

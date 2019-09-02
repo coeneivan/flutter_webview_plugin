@@ -1,5 +1,10 @@
 package com.flutter_webview_plugin;
 
+import com.flutter_webview_plugin.WebviewParams;
+import java.util.ArrayList; 
+import android.Manifest;
+import java.util.Arrays;
+import android.util.Log;
 import android.content.Intent;
 import android.net.Uri;
 import android.annotation.TargetApi;
@@ -9,6 +14,7 @@ import android.os.Build;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.PermissionRequest;
 import android.webkit.CookieManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.ValueCallback;
@@ -20,7 +26,9 @@ import android.provider.MediaStore;
 import androidx.core.content.FileProvider;
 import android.database.Cursor;
 import android.provider.OpenableColumns;
+import java.util.function.Function;
 
+import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +40,9 @@ import java.text.SimpleDateFormat;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
+import io.flutter.plugin.common.PluginRegistry.Registrar;
+
+import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -46,12 +57,33 @@ class WebviewManager {
     private final static int FILECHOOSER_RESULTCODE=1;
     private Uri fileUri;
     private Uri videoUri;
+    private Registrar registrar;
+    boolean closed = false;
+    WebView webView;
+    Activity activity;
+    BrowserClient webViewClient;
+    ResultHandler resultHandler;
+    Context context;
+    WebviewParams params;
 
     private long getFileSize(Uri fileUri) {
         Cursor returnCursor = context.getContentResolver().query(fileUri, null, null, null, null);
         returnCursor.moveToFirst();
         int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
         return returnCursor.getLong(sizeIndex);
+    }
+
+    class RequestPermissionsListener implements RequestPermissionsResultListener {
+        @Override
+        public boolean onRequestPermissionsResult(int id, String[] permissions, int[] grantResults) {
+            Log.d("dddd", params.toString());
+            // if (ArrayUtils.contains(grantResults, -1)) {
+            //     // params.permissionDenied();
+            // } else {
+            //     start(params);
+            // }
+            return true;
+        }
     }
 
     @TargetApi(7)
@@ -113,18 +145,12 @@ class WebviewManager {
         return null;
     }
 
-    boolean closed = false;
-    WebView webView;
-    Activity activity;
-    BrowserClient webViewClient;
-    ResultHandler resultHandler;
-    Context context;
-
-    WebviewManager(final Activity activity, final Context context) {
+    WebviewManager(final Activity activity, final Context context, Registrar registrar) {
         this.webView = new ObservableWebView(activity);
         this.activity = activity;
         this.context = context;
         this.resultHandler = new ResultHandler();
+        this.registrar = registrar;
         webViewClient = new BrowserClient();
         webView.setOnKeyListener(new View.OnKeyListener() {
             @Override
@@ -243,6 +269,10 @@ class WebviewManager {
                 args.put("progress", progress / 100.0);
                 FlutterWebviewPlugin.channel.invokeMethod("onProgressChanged", args);
             }
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                request.grant(request.getResources());
+            }
         });
     }
 
@@ -338,7 +368,7 @@ class WebviewManager {
             boolean clearCookies,
             ArrayList<String> cookies,
             String userAgent,
-            String url,
+            final String url,
             Map<String, String> headers,
             boolean withZoom,
             boolean withLocalStorage,
@@ -348,67 +378,100 @@ class WebviewManager {
             boolean allowFileURLs,
             boolean useWideViewPort,
             String invalidUrlRegex,
-            boolean geolocationEnabled
+            boolean geolocationEnabled,
+            ArrayList<String> permissions,
+            Function permissionDenied
     ) {
-        webView.getSettings().setJavaScriptEnabled(withJavascript);
-        webView.getSettings().setBuiltInZoomControls(withZoom);
-        webView.getSettings().setSupportZoom(withZoom);
-        webView.getSettings().setDomStorageEnabled(withLocalStorage);
-        webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(supportMultipleWindows);
+        params  = new WebviewParams();
+        params.withJavascript = withJavascript;
+        params.clearCache = clearCache;
+        params.hidden = hidden;
+        params.clearCookies = clearCookies;
+        params.cookies = cookies;
+        params.userAgent = userAgent;
+        params.url = url;
+        params.headers = headers;
+        params.withZoom = withZoom;
+        params.withLocalStorage = withLocalStorage;
+        params.scrollBar = scrollBar;
+        params.supportMultipleWindows = supportMultipleWindows;
+        params.appCacheEnabled = appCacheEnabled;
+        params.allowFileURLs = allowFileURLs;
+        params.useWideViewPort = useWideViewPort;
+        params.invalidUrlRegex = invalidUrlRegex;
+        params.geolocationEnabled = geolocationEnabled;
+        params.permissionDenied = permissionDenied;
 
-        webView.getSettings().setSupportMultipleWindows(supportMultipleWindows);
 
-        webView.getSettings().setAppCacheEnabled(appCacheEnabled);
+        if(permissions.size() > 0) {
+            
+            List<String> requestPermissions = new ArrayList<String>();
+            if(permissions.contains("CAMERA")) {
+                requestPermissions.add(Manifest.permission.CAMERA);
+            }
+            if(permissions.contains("MICROPHONE")) {
+                requestPermissions.add(Manifest.permission.RECORD_AUDIO);
+            }
 
-        webView.getSettings().setAllowFileAccessFromFileURLs(allowFileURLs);
-        webView.getSettings().setAllowUniversalAccessFromFileURLs(allowFileURLs);
-
-        webView.getSettings().setUseWideViewPort(useWideViewPort);
-
-        webViewClient.updateInvalidUrlRegex(invalidUrlRegex);
-
-        if (geolocationEnabled) {
-            webView.getSettings().setGeolocationEnabled(true);
-            webView.setWebChromeClient(new WebChromeClient() {
-                @Override
-                public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-                    callback.invoke(origin, true, false);
-                }
-            });
+            registrar.activity().requestPermissions(requestPermissions.toArray(new String[requestPermissions.size()]), 123);
+            registrar.addRequestPermissionsResultListener(new RequestPermissionsListener());
+        } else {
+            start(params);
         }
+
+    }
+
+    void start(WebviewParams params) {
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setAllowFileAccessFromFileURLs(true);
+        webView.getSettings().setAllowUniversalAccessFromFileURLs(true);
+        
+        webView.getSettings().setBuiltInZoomControls(params.withZoom);
+        webView.getSettings().setSupportZoom(params.withZoom);
+        webView.getSettings().setDomStorageEnabled(params.withLocalStorage);
+        webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(params.supportMultipleWindows);
+
+        webView.getSettings().setSupportMultipleWindows(params.supportMultipleWindows);
+
+        webView.getSettings().setAppCacheEnabled(params.appCacheEnabled);
+
+
+        webView.getSettings().setUseWideViewPort(params.useWideViewPort);
+
+        webViewClient.updateInvalidUrlRegex(params.invalidUrlRegex);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webView.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         }
 
-        if (clearCache) {
+        if (params.clearCache) {
             clearCache();
         }
 
-        if (hidden) {
+        if (params.hidden) {
             webView.setVisibility(View.GONE);
         }
 
-        if (clearCookies) {
+        if (params.clearCookies) {
             clearCookies();
         }
 
-        if (cookies != null && !cookies.isEmpty()) {
-            setCookies(url, cookies);
+        if (params.cookies != null && !params.cookies.isEmpty()) {
+            setCookies(params.url, params.cookies);
         }
 
-        if (userAgent != null) {
-            webView.getSettings().setUserAgentString(userAgent);
+        if (params.userAgent != null) {
+            webView.getSettings().setUserAgentString(params.userAgent);
         }
 
-        if(!scrollBar){
+        if(!params.scrollBar){
             webView.setVerticalScrollBarEnabled(false);
         }
 
-        if (headers != null) {
-            webView.loadUrl(url, headers);
+        if (params.headers != null) {
+            webView.loadUrl(params.url, params.headers);
         } else {
-            webView.loadUrl(url);
+            webView.loadUrl(params.url);
         }
     }
     
