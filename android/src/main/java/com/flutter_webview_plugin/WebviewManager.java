@@ -381,7 +381,7 @@ class WebviewManager {
             boolean useWideViewPort,
             String invalidUrlRegex,
             boolean geolocationEnabled,
-            ArrayList<String> permissions,
+            ArrayList<String> permissions
     ) {
         params  = new WebviewParams();
         params.withJavascript = withJavascript;
@@ -401,7 +401,6 @@ class WebviewManager {
         params.useWideViewPort = useWideViewPort;
         params.invalidUrlRegex = invalidUrlRegex;
         params.geolocationEnabled = geolocationEnabled;
-
 
         if(permissions.size() > 0) {
             
