@@ -51,17 +51,6 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
     public void onMethodCall(MethodCall call, MethodChannel.Result result) {
        
         int instance = call.argument("instance");
-
-        Log.d("webviewplugin", "------------------------------------------------------------");
-        Log.d("webviewplugin", "------------------------------------------------------------");
-        Log.d("webviewplugin", "------------------------------------------------------------");
-        Log.d("webviewplugin", "------------------------------------------------------------");
-        Log.d("webviewplugin", call.argument("permissions").toString());
-        Log.d("webviewplugin", "------------------------------------------------------------");
-        Log.d("webviewplugin", "------------------------------------------------------------");
-        Log.d("webviewplugin", "------------------------------------------------------------");
-        Log.d("webviewplugin", "------------------------------------------------------------");
-        
         switch (call.method) {
             case "launch":
                 openUrl(call, result, instance);
@@ -126,7 +115,6 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
         boolean useWideViewPort = call.argument("useWideViewPort");
         String invalidUrlRegex = call.argument("invalidUrlRegex");
         boolean geolocationEnabled = call.argument("geolocationEnabled");
-        Function permissionDenied = call.argument("permissionDenied");
         
         if (webViewManagers[instance] == null || webViewManagers[instance].closed == true) {
             webViewManagers[instance] = new WebviewManager(activity, context, registrar);
@@ -153,8 +141,7 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
                 useWideViewPort,
                 invalidUrlRegex,
                 geolocationEnabled,
-                permissions,
-                permissionDenied
+                permissions
         );
         result.success(null);
     }

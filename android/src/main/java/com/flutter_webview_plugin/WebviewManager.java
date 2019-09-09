@@ -380,7 +380,6 @@ class WebviewManager {
             String invalidUrlRegex,
             boolean geolocationEnabled,
             ArrayList<String> permissions,
-            Function permissionDenied
     ) {
         params  = new WebviewParams();
         params.withJavascript = withJavascript;
@@ -400,7 +399,6 @@ class WebviewManager {
         params.useWideViewPort = useWideViewPort;
         params.invalidUrlRegex = invalidUrlRegex;
         params.geolocationEnabled = geolocationEnabled;
-        params.permissionDenied = permissionDenied;
 
 
         if(permissions.size() > 0) {

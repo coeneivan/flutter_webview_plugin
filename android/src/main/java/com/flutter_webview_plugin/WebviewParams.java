@@ -21,5 +21,4 @@ class WebviewParams {
     public static boolean useWideViewPort;
     public static String invalidUrlRegex;
     public static boolean geolocationEnabled;
-    public static Function permissionDenied;
 }
