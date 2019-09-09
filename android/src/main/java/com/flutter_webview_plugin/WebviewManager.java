@@ -402,7 +402,7 @@ class WebviewManager {
         params.invalidUrlRegex = invalidUrlRegex;
         params.geolocationEnabled = geolocationEnabled;
 
-        if(permissions.size() > 0) {
+        if(permissions != null && permissions.size() > 0) {
             
             List<String> requestPermissions = new ArrayList<String>();
             if(permissions.contains("CAMERA")) {
