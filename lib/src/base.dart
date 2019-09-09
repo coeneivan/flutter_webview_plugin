@@ -144,7 +144,6 @@ class FlutterWebviewPlugin {
     String invalidUrlRegex,
     bool geolocationEnabled,
     List<String> permissions,
-    Function permissionDenied
   }) async {
     final List<String> serializedCookies = cookies.map((cookie) => cookie.toString()).toList();
     final args = <String, dynamic>{
@@ -167,8 +166,7 @@ class FlutterWebviewPlugin {
       'invalidUrlRegex': invalidUrlRegex,
       'geolocationEnabled': geolocationEnabled ?? false,
       'instance': _webviewInstance,
-      'permissions': permissions,
-      'permissionDenied': permissionDenied
+      'permissions': permissions
     };
 
     if (headers != null) {
