@@ -76,12 +76,14 @@ class WebviewManager {
     class RequestPermissionsListener implements RequestPermissionsResultListener {
         @Override
         public boolean onRequestPermissionsResult(int id, String[] permissions, int[] grantResults) {
-            Log.d("dddd", params.toString());
+            // Log.d("dddd", params.toString());
             // if (ArrayUtils.contains(grantResults, -1)) {
             //     // params.permissionDenied();
             // } else {
             //     start(params);
             // }
+
+            start(params);
             return true;
         }
     }
