@@ -1,5 +1,6 @@
 #import <Flutter/Flutter.h>
 #import <WebKit/WebKit.h>
+#import "PermissionManager.h"
 
 static FlutterMethodChannel *channel;
 

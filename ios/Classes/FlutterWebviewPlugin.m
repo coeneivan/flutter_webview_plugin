@@ -17,7 +17,7 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
     
     UIViewController *viewController = [UIApplication sharedApplication].delegate.window.rootViewController;
     FlutterWebviewPlugin* instance = [[FlutterWebviewPlugin alloc] initWithViewController:viewController];
-
+    
     [registrar addMethodCallDelegate:instance channel:channel];
 }
 
@@ -34,13 +34,7 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
     NSNumber *instance = call.arguments[@"instance"];
     
     if ([@"launch" isEqualToString:call.method]) {
-        if (![self.webviewDictionary objectForKey:instance]) {
-            [self initWebview:call instance:instance];
-        }
-        else {
-            [self navigate:call instance:instance];
-        }
-        result(nil);
+        [self launch:call instance:instance result:result];
     } else if ([@"close" isEqualToString:call.method]) {
         [self closeWebView:instance];
         result(nil);
@@ -76,6 +70,28 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
         result(nil);
     } else {
         result(FlutterMethodNotImplemented);
+    }
+}
+
+- (void)launch:(FlutterMethodCall*)call instance:(NSNumber*)instance result:(FlutterResult)result  {
+    if ([self.webviewDictionary objectForKey:instance]) {
+        [self navigate:call instance:instance];
+        result(nil);
+    } else {
+        NSArray *permissions = call.arguments[@"permissions"];
+
+        if(permissions.count == 0) {
+            [self initWebview:call instance:instance];
+            result(true);
+        } else {
+            [PermissionManager requestPermissions:permissions completionHandler:^(BOOL success) {
+                if (success) {
+                    [self initWebview:call instance:instance];
+                }
+
+                result(success);
+            }];
+        }
     }
 }
 
@@ -198,9 +214,9 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
         NSString *code = call.arguments[@"code"];
         WKWebView *webview = self.webviewDictionary[instance];
         [webview evaluateJavaScript:code
-                       completionHandler:^(id _Nullable response, NSError * _Nullable error) {
-            completionHandler([NSString stringWithFormat:@"%@", response]);
-        }];
+                  completionHandler:^(id _Nullable response, NSError * _Nullable error) {
+                      completionHandler([NSString stringWithFormat:@"%@", response]);
+                  }];
     } else {
         completionHandler(nil);
     }
@@ -222,7 +238,7 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
         [webview removeFromSuperview];
         webview.navigationDelegate = nil;
         self.webviewDictionary[instance] = nil;
-
+        
         // manually trigger onDestroy
         [channel invokeMethod:@"onDestroy" arguments:nil];
     }
