@@ -83,7 +83,10 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
         if(permissions != nil && [permissions isKindOfClass:[NSArray class]] && [permissions count] > 0) {
             [PermissionManager requestPermissions:permissions completionHandler:^(BOOL success) {
                 if (success) {
-                    [self initWebview:call instance:instance];
+                    dispatch_block_t block = ^{
+                        [self initWebview:call instance:instance];
+                    };
+                    dispatch_async(dispatch_get_main_queue(), block);
                 }
                 
                 result(@(success));
@@ -145,7 +148,7 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
             }];
         };
     }
-    
+
     dispatch_group_notify(group, dispatch_get_main_queue(), ^{
         config.websiteDataStore = store;
         
