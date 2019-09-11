@@ -76,21 +76,21 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
 - (void)launch:(FlutterMethodCall*)call instance:(NSNumber*)instance result:(FlutterResult)result  {
     if ([self.webviewDictionary objectForKey:instance]) {
         [self navigate:call instance:instance];
-        result(nil);
+        result(@YES);
     } else {
         NSArray *permissions = call.arguments[@"permissions"];
-
-        if(permissions.count == 0) {
-            [self initWebview:call instance:instance];
-            result(true);
-        } else {
+        
+        if(permissions != nil && [permissions isKindOfClass:[NSArray class]] && [permissions count] > 0) {
             [PermissionManager requestPermissions:permissions completionHandler:^(BOOL success) {
                 if (success) {
                     [self initWebview:call instance:instance];
                 }
-
-                result(success);
+                
+                result(@(success));
             }];
+        } else {
+            [self initWebview:call instance:instance];
+            result(@YES);
         }
     }
 }
