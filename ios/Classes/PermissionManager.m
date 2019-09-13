@@ -15,11 +15,9 @@
     
     return AVMediaTypeAudio;
 }
-    
-+ (void)requestPermissions:(NSArray *)permissions completionHandler:(void(^)(BOOL success))completionHandler {
-    NSMutableSet *requestQueue = [[NSMutableSet alloc] initWithArray:permissions];
-    NSMutableArray *resultArray = [NSMutableArray arrayWithCapacity:permissions.count];
 
++ (void)requestPermissions:(NSArray *)permissions completionHandler:(void(^)(BOOL success))completionHandler {
+    NSMutableArray *resultArray = [NSMutableArray arrayWithCapacity:permissions.count];
     NSMutableArray *permissionsToCheck = [NSMutableArray array];
     
     for (NSString *permission in permissions) {
@@ -34,6 +32,8 @@
         completionHandler(true);
         return;
     }
+    
+    NSMutableSet *requestQueue = [[NSMutableSet alloc] initWithArray:permissionsToCheck];
     
     for (int i = 0; i < permissionsToCheck.count; ++i) {
         NSString *permission = permissionsToCheck[i];
