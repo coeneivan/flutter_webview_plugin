@@ -74,17 +74,35 @@ class WebviewManager {
     }
 
     class RequestPermissionsListener implements RequestPermissionsResultListener {
+        MethodChannel.Result result;
+        int permissionID;
+        RequestPermissionsListener( MethodChannel.Result result, int permissionID) {
+            this.result = result;
+            this.permissionID = permissionID;
+        }
         @Override
         public boolean onRequestPermissionsResult(int id, String[] permissions, int[] grantResults) {
-            // Log.d("dddd", params.toString());
-            // if (ArrayUtils.contains(grantResults, -1)) {
-            //     // params.permissionDenied();
-            // } else {
-            //     start(params);
-            // }
-
-            start(params);
-            return true;
+            if (id == permissionID) { 
+                boolean somePermissionRejected = false;
+                for (int res : grantResults) {
+                    Log.d(">>>>>>>>>", String.valueOf(res));
+                    if (res == -1) {
+                        somePermissionRejected = true;
+                        break;
+                    }
+                }
+                if (somePermissionRejected) {
+                    Log.d(">>>>>>>>>", "Some permission got rejected");
+                    result.success(false);
+                    return false;
+                } else {
+                    Log.d(">>>>>>>>>", "Not one permission got rejected, starting " + params.url);
+                    result.success(true);
+                    start(params);
+                    return true;
+                }
+            } 
+            return false;
         }
     }
 
@@ -364,6 +382,7 @@ class WebviewManager {
     }
 
     void openUrl(
+            MethodChannel.Result result,
             boolean withJavascript,
             boolean clearCache,
             boolean hidden,
@@ -383,7 +402,8 @@ class WebviewManager {
             boolean geolocationEnabled,
             ArrayList<String> permissions
     ) {
-        params  = new WebviewParams();
+        Log.d(">>>>>>>>>>", "opening " + url);
+        params = new WebviewParams();
         params.withJavascript = withJavascript;
         params.clearCache = clearCache;
         params.hidden = hidden;
@@ -411,10 +431,19 @@ class WebviewManager {
             if(permissions.contains("MICROPHONE")) {
                 requestPermissions.add(Manifest.permission.RECORD_AUDIO);
             }
-
-            registrar.activity().requestPermissions(requestPermissions.toArray(new String[requestPermissions.size()]), 123);
-            registrar.addRequestPermissionsResultListener(new RequestPermissionsListener());
+            Random rand = new Random();
+            Integer permissionId = rand.nextInt(500);
+            
+            Log.d(">>>>>>", "----------------------");
+            Log.d(">>>>>>", "----------------------");
+            Log.d(">>>>>>", String.valueOf(permissionId));
+            Log.d(">>>>>>", params.url);
+            Log.d(">>>>>>", "----------------------");
+            Log.d(">>>>>>", "----------------------");
+            registrar.activity().requestPermissions(requestPermissions.toArray(new String[requestPermissions.size()]), permissionId);
+            registrar.addRequestPermissionsResultListener(new RequestPermissionsListener(result, permissionId));
         } else {
+            result.success(true);
             start(params);
         }
 
@@ -467,6 +496,7 @@ class WebviewManager {
             webView.setVerticalScrollBarEnabled(false);
         }
 
+        Log.d(">>>>>>>>>>", "starting " + params.url);
         if (params.headers != null) {
             webView.loadUrl(params.url, params.headers);
         } else {

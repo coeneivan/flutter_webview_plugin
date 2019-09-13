@@ -123,7 +123,7 @@ class FlutterWebviewPlugin {
   /// - [invalidUrlRegex] is the regular expression of URLs that web view shouldn't load.
   /// For example, when webview is redirected to a specific URL, you want to intercept
   /// this process by stopping loading this URL and replacing webview by another screen.
-  Future<Null> launch(String url, {
+  Future<bool> launch(String url, {
     Map<String, String> headers,
     bool withJavascript,
     bool clearCache,
@@ -181,7 +181,7 @@ class FlutterWebviewPlugin {
         'height': rect.height,
       };
     }
-    await _channel.invokeMethod('launch', args);
+    return await _channel.invokeMethod('launch', args);
   }
 
 

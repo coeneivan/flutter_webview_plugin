@@ -124,7 +124,9 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
 
         activity.addContentView(webViewManagers[instance].webView, params);
 
-        webViewManagers[instance].openUrl(withJavascript,
+
+        webViewManagers[instance].openUrl(result,
+                withJavascript,
                 clearCache,
                 hidden,
                 clearCookies,
@@ -143,7 +145,6 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
                 geolocationEnabled,
                 permissions
         );
-        result.success(null);
     }
 
     private FrameLayout.LayoutParams buildLayoutParams(MethodCall call) {
