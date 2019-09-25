@@ -16,12 +16,12 @@ enum WebViewState { shouldStart, startLoad, finishLoad, abortLoad }
 /// Singleton class that communicate with a Webview Instance
 class FlutterWebviewPlugin {
   factory FlutterWebviewPlugin() =>  new FlutterWebviewPlugin._();
-  int _webviewInstance;
+  int webview;
   FlutterWebviewPlugin._() {
 
     print(" $webviewInstance let\'s Count!");
     webviewInstance++;
-    _webviewInstance = webviewInstance;
+    webview = webviewInstance;
 
     _channel.setMethodCallHandler(_handleMessages);
   }
@@ -165,7 +165,7 @@ class FlutterWebviewPlugin {
       'useWideViewPort': useWideViewPort ?? false,
       'invalidUrlRegex': invalidUrlRegex,
       'geolocationEnabled': geolocationEnabled ?? false,
-      'instance': _webviewInstance,
+      'instance': webview,
       'permissions': permissions
     };
 
@@ -188,39 +188,39 @@ class FlutterWebviewPlugin {
 
   /// Execute Javascript inside webview
   Future<String> evalJavascript(String code) async {
-    final res = await _channel.invokeMethod('eval', {'code': code, 'instance': _webviewInstance});
+    final res = await _channel.invokeMethod('eval', {'code': code, 'instance': webview});
     return res;
   }
 
   /// Close the Webview
   /// Will trigger the [onDestroy] event
-  Future<Null> close() async => await _channel.invokeMethod('close',  {'instance': _webviewInstance});
+  Future<Null> close() async => await _channel.invokeMethod('close',  {'instance': webview});
 
   /// Reloads the WebView.
-  Future<Null> reload() async => await _channel.invokeMethod('reload', {'instance': _webviewInstance});
+  Future<Null> reload() async => await _channel.invokeMethod('reload', {'instance': webview});
 
   /// Navigates back on the Webview.
-  Future<Null> goBack() async => await _channel.invokeMethod('back',  {'instance': _webviewInstance});
+  Future<Null> goBack() async => await _channel.invokeMethod('back',  {'instance': webview});
 
   /// Navigates forward on the Webview.
-  Future<Null> goForward() async => await _channel.invokeMethod('forward', {'instance': _webviewInstance});
+  Future<Null> goForward() async => await _channel.invokeMethod('forward', {'instance': webview});
 
   // Hides the webview
-  Future<Null> hide() async => await _channel.invokeMethod('hide', {'instance': _webviewInstance});
+  Future<Null> hide() async => await _channel.invokeMethod('hide', {'instance': webview});
 
   // Shows the webview
-  Future<Null> show() async => await _channel.invokeMethod('show', {'instance': _webviewInstance});
+  Future<Null> show() async => await _channel.invokeMethod('show', {'instance': webview});
 
   // Reload webview with a url
   Future<Null> reloadUrl(String url) async {
-    await _channel.invokeMethod('reloadUrl', {'url': url, 'instance': _webviewInstance});
+    await _channel.invokeMethod('reloadUrl', {'url': url, 'instance': webview});
   }
 
   // Clean cookies on WebView
-  Future<Null> cleanCookies() async => await _channel.invokeMethod('cleanCookies', {'instance': _webviewInstance});
+  Future<Null> cleanCookies() async => await _channel.invokeMethod('cleanCookies', {'instance': webview});
 
   // Stops current loading process
-  Future<Null> stopLoading() async => await _channel.invokeMethod('stopLoading', {'instance': _webviewInstance});
+  Future<Null> stopLoading() async => await _channel.invokeMethod('stopLoading', {'instance': webview});
 
   /// Close all Streams
   void dispose() {
