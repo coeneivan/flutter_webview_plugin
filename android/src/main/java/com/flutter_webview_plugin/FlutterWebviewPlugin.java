@@ -118,8 +118,17 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
         boolean geolocationEnabled = call.argument("geolocationEnabled");
         
         if (webViewManagers[instance] == null || webViewManagers[instance].closed == true) {
-            webViewManagers[instance] = new WebviewManager(activity, context, registrar);
+            Map<String, Object> arguments = (Map<String, Object>) call.arguments;
+            List<String> channelNames = new ArrayList();
+            if (arguments.containsKey(JS_CHANNEL_NAMES_FIELD)) {
+                channelNames = (List<String>) arguments.get(JS_CHANNEL_NAMES_FIELD);
+            }
+            webViewManagers[instance] = new WebviewManager(activity, context, registrar, channelNames);
         }
+
+        // if (webViewManagers[instance] == null || webViewManagers[instance].closed == true) {
+        //     webViewManagers[instance] = new WebviewManager(activity, context, registrar);
+        // }
 
         FrameLayout.LayoutParams params = buildLayoutParams(call);
 

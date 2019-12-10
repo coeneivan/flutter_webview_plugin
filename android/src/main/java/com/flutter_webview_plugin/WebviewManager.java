@@ -11,6 +11,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
