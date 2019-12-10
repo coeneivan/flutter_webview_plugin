@@ -58,6 +58,7 @@ class WebviewManager {
     private Uri fileUri;
     private Uri videoUri;
     private Registrar registrar;
+    private final Handler platformThreadHandler;
     boolean closed = false;
     WebView webView;
     Activity activity;
@@ -165,11 +166,12 @@ class WebviewManager {
         return null;
     }
 
-    WebviewManager(final Activity activity, final Context context, Registrar registrar) {
+    WebviewManager(final Activity activity, final Context context, Registrar registrar, final List<String> channelNames) {
         this.webView = new ObservableWebView(activity);
         this.activity = activity;
         this.context = context;
         this.resultHandler = new ResultHandler();
+        this.platformThreadHandler = new Handler(context.getMainLooper());
         this.registrar = registrar;
         webViewClient = new BrowserClient();
         webView.setOnKeyListener(new View.OnKeyListener() {
