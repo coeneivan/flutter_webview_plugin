@@ -39,6 +39,8 @@ public class BrowserClient extends WebViewClient {
         }
     }
 
+
+
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
         super.onPageStarted(view, url, favicon);

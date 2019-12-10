@@ -294,6 +294,7 @@ class WebviewManager {
                 request.grant(request.getResources());
             }
         });
+        registerJavaScriptChannelNames(channelNames);
     }
 
     private Uri getOutputFilename(String intentType) {
@@ -379,6 +380,13 @@ class WebviewManager {
     private void clearCache() {
         webView.clearCache(true);
         webView.clearFormData();
+    }
+
+    private void registerJavaScriptChannelNames(List<String> channelNames) {
+        for (String channelName : channelNames) {
+            webView.addJavascriptInterface(
+                    new JavaScriptChannel(FlutterWebviewPlugin.channel, channelName, platformThreadHandler), channelName);
+        }
     }
 
     void openUrl(

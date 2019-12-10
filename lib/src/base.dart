@@ -4,6 +4,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_webview_plugin/src/javascript_channel.dart';
+import 'javascript_message.dart';
 
 const _kChannel = 'flutter_webview_plugin';
 int webviewInstance = -1;
@@ -37,6 +39,7 @@ class FlutterWebviewPlugin {
   final _onBack = StreamController<Null>.broadcast();
   final _onDestroy = StreamController<Null>.broadcast();
   final _onUrlChanged = StreamController<String>.broadcast();
+  final _onMessageReceived = StreamController<String>.broadcast();
   final _onStateChanged = StreamController<WebViewStateChanged>.broadcast();
   final _onScrollXChanged = StreamController<double>.broadcast();
   final _onScrollYChanged = StreamController<double>.broadcast();
@@ -63,6 +66,9 @@ class FlutterWebviewPlugin {
       case "onProgressChanged":
         _onProgressChanged.add(call.arguments["progress"]);
         break;
+      case 'onMessage':
+        _onMessageReceived.add(call.arguments["message"]);
+        break;
       case 'onState':
         _onStateChanged.add(
           WebViewStateChanged.fromMap(
@@ -72,6 +78,10 @@ class FlutterWebviewPlugin {
         break;
       case 'onHttpError':
         _onHttpError.add(WebViewHttpError(call.arguments['code'], call.arguments['url']));
+        break;
+      case 'javascriptChannelMessage':
+        _handleJavascriptChannelMessage(
+            call.arguments['channel'], call.arguments['message']);
         break;
     }
   }
@@ -84,6 +94,9 @@ class FlutterWebviewPlugin {
 
   /// Listening url changed
   Stream<String> get onUrlChanged => _onUrlChanged.stream;
+
+  /// Listening message received
+  Stream<String> get onMessageReceived => _onMessageReceived.stream;
 
   /// Listening the onState Event for iOS WebView and Android
   /// content is Map for type: {shouldStart(iOS)|startLoad|finishLoad}
@@ -100,6 +113,13 @@ class FlutterWebviewPlugin {
   Stream<double> get onScrollXChanged => _onScrollXChanged.stream;
 
   Stream<WebViewHttpError> get onHttpError => _onHttpError.stream;
+
+  final _onPostMessage = StreamController<JavascriptMessage>.broadcast();
+
+  final Map<String, JavascriptChannel> _javascriptChannels =
+      // ignoring warning as min SDK version doesn't support collection literals yet
+      // ignore: prefer_collection_literals
+      Map<String, JavascriptChannel>();
 
   /// Start the Webview with [url]
   /// - [headers] specify additional HTTP headers
@@ -125,6 +145,7 @@ class FlutterWebviewPlugin {
   /// this process by stopping loading this URL and replacing webview by another screen.
   Future<bool> launch(String url, {
     Map<String, String> headers,
+    Set<JavascriptChannel> javascriptChannels,
     bool withJavascript,
     bool clearCache,
     bool clearCookies,
@@ -173,6 +194,21 @@ class FlutterWebviewPlugin {
       args['headers'] = headers;
     }
 
+    _assertJavascriptChannelNamesAreUnique(javascriptChannels);
+
+    if (javascriptChannels != null) {
+      javascriptChannels.forEach((channel) {
+        _javascriptChannels[channel.name] = channel;
+      });
+    } else {
+      if (_javascriptChannels.isNotEmpty) {
+        _javascriptChannels.clear();
+      }
+    }
+
+    args['javascriptChannelNames'] =
+        _extractJavascriptChannelNames(javascriptChannels).toList();
+
     if (rect != null) {
       args['rect'] = {
         'left': rect.left,
@@ -194,7 +230,10 @@ class FlutterWebviewPlugin {
 
   /// Close the Webview
   /// Will trigger the [onDestroy] event
-  Future<Null> close() async => await _channel.invokeMethod('close',  {'instance': webview});
+  Future<Null> close() async {
+    _javascriptChannels.clear();
+    await _channel.invokeMethod('close',  {'instance': webview});
+  }
 
   /// Reloads the WebView.
   Future<Null> reload() async => await _channel.invokeMethod('reload', {'instance': webview});
@@ -227,6 +266,7 @@ class FlutterWebviewPlugin {
     _onDestroy.close();
     _onUrlChanged.close();
     _onStateChanged.close();
+    _onMessageReceived.close();
     _onProgressChanged.close();
     _onScrollXChanged.close();
     _onScrollYChanged.close();
@@ -259,6 +299,29 @@ class FlutterWebviewPlugin {
     };
     args['instance'] = instance;
     await _channel.invokeMethod('resize', args);
+  }
+
+  Set<String> _extractJavascriptChannelNames(Set<JavascriptChannel> channels) {
+    final Set<String> channelNames = channels == null
+        // ignore: prefer_collection_literals
+        ? Set<String>()
+        : channels.map((JavascriptChannel channel) => channel.name).toSet();
+    return channelNames;
+  }
+
+  void _handleJavascriptChannelMessage(
+      final String channelName, final String message) {
+    _javascriptChannels[channelName]
+        .onMessageReceived(JavascriptMessage(message));
+  }
+
+  void _assertJavascriptChannelNamesAreUnique(
+      final Set<JavascriptChannel> channels) {
+    if (channels == null || channels.isEmpty) {
+      return;
+    }
+
+    assert(_extractJavascriptChannelNames(channels).length == channels.length);
   }
 }
 

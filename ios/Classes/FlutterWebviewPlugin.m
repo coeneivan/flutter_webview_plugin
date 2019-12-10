@@ -1,4 +1,5 @@
 #import "FlutterWebviewPlugin.h"
+#import "WebviewJavaScriptChannelHandler.h"
 
 static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
 
@@ -6,6 +7,7 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
 @interface FlutterWebviewPlugin() <WKNavigationDelegate, UIScrollViewDelegate, WKUIDelegate> {
     BOOL _enableAppScheme;
     BOOL _enableZoom;
+    NSMutableSet* _javaScriptChannelNames;
 }
 @end
 
@@ -109,6 +111,15 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
     NSNumber *withZoom = call.arguments[@"withZoom"];
     NSArray *cookies = call.arguments[@"cookies"];
     NSNumber *scrollBar = call.arguments[@"scrollBar"];
+
+    _javaScriptChannelNames = [[NSMutableSet alloc] init];
+    
+    WKUserContentController* userContentController = [[WKUserContentController alloc] init];
+    if ([call.arguments[@"javascriptChannelNames"] isKindOfClass:[NSArray class]]) {
+        NSArray* javaScriptChannelNames = call.arguments[@"javascriptChannelNames"];
+        [_javaScriptChannelNames addObjectsFromArray:javaScriptChannelNames];
+        [self registerJavaScriptChannels:_javaScriptChannelNames controller:userContentController];
+    }
     
     if (clearCache != (id)[NSNull null] && [clearCache boolValue]) {
         [[NSURLCache sharedURLCache] removeAllCachedResponses];
@@ -353,6 +364,23 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
         [channel invokeMethod:@"onHttpError" arguments:@{@"code": [NSString stringWithFormat:@"%ld", response.statusCode], @"url": webView.URL.absoluteString}];
     }
     decisionHandler(WKNavigationResponsePolicyAllow);
+}
+
+- (void)registerJavaScriptChannels:(NSSet*)channelNames
+                        controller:(WKUserContentController*)userContentController {
+    for (NSString* channelName in channelNames) {
+        FLTCommunityJavaScriptChannel* _channel =
+        [[FLTCommunityJavaScriptChannel alloc] initWithMethodChannel: channel
+                                      javaScriptChannelName:channelName];
+        [userContentController addScriptMessageHandler:_channel name:channelName];
+        NSString* wrapperSource = [NSString
+                                   stringWithFormat:@"window.%@ = webkit.messageHandlers.%@;", channelName, channelName];
+        WKUserScript* wrapperScript =
+        [[WKUserScript alloc] initWithSource:wrapperSource
+                               injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                            forMainFrameOnly:NO];
+        [userContentController addUserScript:wrapperScript];
+    }
 }
 
 #pragma mark -- UIScrollViewDelegate

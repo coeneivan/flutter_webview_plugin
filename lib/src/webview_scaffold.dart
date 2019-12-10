@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_webview_plugin/src/javascript_channel.dart';
 
 import 'base.dart';
 
@@ -13,6 +14,7 @@ class WebviewScaffold extends StatefulWidget {
     this.appBar,
     @required this.url,
     this.headers,
+    this.javascriptChannels,
     this.withJavascript,
     this.clearCache,
     this.clearCookies,
@@ -38,6 +40,7 @@ class WebviewScaffold extends StatefulWidget {
   final PreferredSizeWidget appBar;
   final String url;
   final Map<String, String> headers;
+  final Set<JavascriptChannel> javascriptChannels;
   final bool withJavascript;
   final bool clearCache;
   final bool clearCookies;
@@ -138,6 +141,7 @@ class _WebviewScaffoldState extends State<WebviewScaffold> {
             webviewReference.launch(
               widget.url,
               headers: widget.headers,
+              javascriptChannels: widget.javascriptChannels,
               withJavascript: widget.withJavascript,
               clearCache: widget.clearCache,
               clearCookies: widget.clearCookies,
