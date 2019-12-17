@@ -142,6 +142,7 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
     }
     
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+    config.userContentController = userContentController;
     WKWebsiteDataStore* store = [WKWebsiteDataStore nonPersistentDataStore];
     
     dispatch_group_t group = dispatch_group_create();
